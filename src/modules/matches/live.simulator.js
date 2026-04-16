@@ -40,6 +40,12 @@ class LiveSimulator {
                 match.liveState.minute += 2; // acelerado
                 
                 // Simulación probabilística de eventos
+                if (!match.liveState) {
+                    match.liveState = { minute: 1, homeScore: 0, awayScore: 0, homeCorners: 0, awayCorners: 0, possession: '50-50' };
+                }
+                
+                match.liveState.minute += 2; // acelerado
+                
                 const rand = Math.random();
                 if (rand > 0.95) match.liveState.homeScore += 1;
                 else if (rand > 0.90) match.liveState.awayScore += 1;
@@ -62,10 +68,10 @@ class LiveSimulator {
         
         const bulkOps = liveMatches.map(match => {
             let update = {};
-            if (match.status === 'scheduled') {
+            if (match.status === 'scheduled' || !match.liveState) {
                 update = { status: 'live', liveState: { minute: 1, homeScore: 0, awayScore: 0, homeCorners: 0, awayCorners: 0, possession: '50-50' }};
             } else {
-                let m = match.liveState || { minute: 1, homeScore: 0, awayScore: 0, homeCorners: 0, awayCorners: 0 };
+                let m = match.liveState;
                 m.minute += 2;
                 const rand = Math.random();
                 if (rand > 0.95) m.homeScore += 1;
