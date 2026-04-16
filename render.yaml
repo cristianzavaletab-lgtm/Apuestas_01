@@ -1,0 +1,24 @@
+/**
+ * BETPREDICT RENDER BLUEPRINT
+ * Use this file to deploy the entire stack to Render.com with one click.
+ */
+services:
+  - type: web
+    name: betpredict-terminal
+    env: node
+    plan: free # Can be changed to 'starter' for more boost
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: THE_ODDS_API_KEY
+        sync: false
+      - key: MONGODB_URI
+        sync: false

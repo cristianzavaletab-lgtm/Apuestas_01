@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BetPredict | Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #020617;
+            --surface: rgba(15, 23, 42, 0.6);
+            --border: rgba(255, 255, 255, 0.05);
+            --text-bright: #f1f5f9;
+            --accent: #c5a021;
+        }
+        body {
+            background-color: var(--bg-deep);
+            color: #94a3b8;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-8">
+    <div class="max-w-6xl mx-auto space-y-8">
+        <!-- Header -->
+        <header class="flex justify-between items-center bg-[#01040f] p-6 rounded-3xl border border-white/5">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-white">AD</div>
+                <div>
+                    <h1 class="text-lg font-black text-white uppercase tracking-widest leading-none">Control Tower</h1>
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Payment Validation System</span>
+                </div>
+            </div>
+            <button onclick="location.href='/'" class="text-[10px] font-black text-slate-500 hover:text-white uppercase transition-all">Back to Terminal</button>
+        </header>
+
+        <!-- API Stats Widget -->
+        <div class="glass p-6 rounded-[30px] flex justify-between items-center border border-accent/20">
+            <div>
+                <h2 class="text-xs font-black text-accent uppercase tracking-[0.2em] mb-1">RapidAPI Global Quota</h2>
+                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Tokens Remaining for Ingestion</div>
+            </div>
+            <div id="apiTokens" class="text-2xl font-black text-white mono">...</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 gap-8">
+            <div class="glass p-8 rounded-[40px] space-y-6">
+                <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                    <h2 class="text-xs font-black text-blue-500 uppercase tracking-[0.2em]">Pending Validations</h2>
+                    <span id="pendingCount" class="text-[10px] font-bold text-slate-500 mono">0 PENDING</span>
+                </div>
+
+                <div id="paymentList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Payments will be injected here -->
+                    <div class="p-20 text-center col-span-full opacity-20">
+                        <span class="text-xs font-black uppercase tracking-widest">No pending payments detected</span>
+                    </div>
+                </div>
+
+                <!-- Users Section -->
+                <div class="pt-8 border-t border-white/10 mt-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-xl font-black text-white uppercase tracking-tighter">Usuarios Registrados</h2>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Supervisión de Cuentas y Tokens</p>
+                        </div>
+                        <div class="flex gap-2">
+                             <input type="text" id="searchUser" placeholder="Buscar email o usuario..." class="bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white font-bold outline-none focus:border-blue-500/50" onkeyup="filterUsers()">
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto rounded-2xl border border-white/5 bg-black/40">
+                        <table class="w-full text-left" id="usersTable">
+                            <thead>
+                                <tr class="border-b border-white/5 text-[9px] font-black text-slate-500 uppercase tracking-widest bg-white/5">
+                                    <th class="p-4">Usuario</th>
+                                    <th class="p-4">Email</th>
+                                    <th class="p-4 text-center">Rol</th>
+                                    <th class="p-4 text-center">Tokens (💎)</th>
+                                    <th class="p-4 text-right">Registro</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-[10px] font-bold text-slate-300 min-h-[100px]" id="usersList">
+                                <tr>
+                                    <td colspan="5" class="p-8 text-center opacity-50">Cargando usuarios...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imgModal" class="fixed inset-0 bg-black/95 z-[200] hidden flex items-center justify-center p-8" onclick="closeImgModal()">
+        <img id="modalImg" src="" class="max-h-full max-w-full rounded-2xl shadow-2xl">
+    </div>
+
+    <script>
+        async function safeFetch(url, options = {}) {
+            try {
+                const res = await fetch(url, options);
+                if (res.status === 401 || res.status === 403) {
+                    alert('Acceso denegado: Inicia sesión como administrador');
+                    location.href = '/';
+                    return null;
+                }
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Error en la petición');
+                }
+                return await res.json();
+            } catch (e) {
+                console.error('Fetch Error:', e);
+                alert(e.message || 'Error de red');
+                return null;
+            }
+        }
+
+        let allUsersCache = [];
+
+        async function fetchPayments() {
+            const token = localStorage.getItem('bp_token');
+            if(!token) return location.href = '/';
+            const data = await safeFetch('/api/admin/payments', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (data) renderPayments(data);
+
+            const stats = await safeFetch('/api/admin/apistats', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (stats && stats.rapidApiTokensRemaining !== undefined) {
+                document.getElementById('apiTokens').innerText = stats.rapidApiTokensRemaining;
+            }
+
+            const users = await safeFetch('/api/admin/users', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (users) {
+                allUsersCache = users;
+                renderUsers(users);
+            }
+        }
+
+        function renderPayments(payments) {
+            const container = document.getElementById('paymentList');
+            document.getElementById('pendingCount').innerText = `${payments.length} PENDING`;
+
+            if(payments.length === 0) {
+                container.innerHTML = '<div class="p-20 text-center col-span-full opacity-20"><span class="text-xs font-black uppercase tracking-widest">No pending payments detected</span></div>';
+                return;
+            }
+
+            container.innerHTML = payments.map(p => `
+                <div class="glass p-6 rounded-3xl border border-white/5 space-y-4 hover:border-blue-500/30 transition-all">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-[11px] font-black text-white uppercase">${p.username || 'Usuario'}</div>
+                            <div class="text-[9px] font-bold text-slate-500 mono">${p.email || ''}</div>
+                        </div>
+                        <span class="text-[8px] font-black text-slate-600 uppercase mono">${new Date(p.createdAt).toLocaleString()}</span>
+                    </div>
+
+                    <div class="relative group cursor-zoom-in" onclick="openImgModal('${p.screenshotUrl}')">
+                        <img src="${p.screenshotUrl}" class="w-full h-48 object-cover rounded-xl border border-white/10 group-hover:opacity-80 transition-all">
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                             <span class="bg-black/80 px-4 py-2 rounded-full text-[9px] font-black text-white uppercase">Ver Comprobante</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="processPayment('${p._id}', 'approve')" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-xl text-white text-[9px] font-black uppercase transition-all" title="Otorga 50 Tokens">Aprobar (+50 💎)</button>
+                        <button onclick="processPayment('${p._id}', 'reject')" class="flex-1 py-3 bg-rose-600/10 hover:bg-rose-600 text-rose-500 hover:text-white border border-rose-500/20 rounded-xl text-[9px] font-black uppercase transition-all">Rechazar ❌</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function processPayment(id, action) {
+            if(!confirm(`¿Estás seguro de ${action === 'approve' ? 'APROBAR' : 'RECHAZAR'} este pago?`)) return;
+            const token = localStorage.getItem('bp_token');
+            const data = await safeFetch(`/api/admin/payments/${id}/${action}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if(data) fetchPayments();
+        }
+
+        function openImgModal(url) {
+            document.getElementById('modalImg').src = url;
+            document.getElementById('imgModal').classList.remove('hidden');
+        }
+
+        function closeImgModal() {
+            document.getElementById('imgModal').classList.add('hidden');
+        }
+
+        function renderUsers(users) {
+            const list = document.getElementById('usersList');
+            if(users.length === 0) {
+                list.innerHTML = '<tr><td colspan="5" class="p-8 text-center opacity-50">Ningún usuario registrado</td></tr>';
+                return;
+            }
+            
+            list.innerHTML = users.map(u => `
+                <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                    <td class="p-4 font-black">${u.username || 'N/A'}</td>
+                    <td class="p-4 mono text-[9px]">${u.email || 'N/A'}</td>
+                    <td class="p-4 text-center">
+                        <span class="px-2 py-0.5 rounded text-[8px] uppercase tracking-widest ${u.role === 'admin' ? 'bg-amber-500/20 text-amber-500' : 'bg-blue-500/10 text-blue-400'}">${u.role || 'user'}</span>
+                    </td>
+                    <td class="p-4 text-center">
+                        <span class="font-black text-emerald-400 mono">${u.role === 'admin' ? '∞' : (u.tokens || 0)} 💎</span>
+                    </td>
+                    <td class="p-4 text-right mono text-[8px] text-slate-500">${new Date(u.createdAt).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterUsers() {
+            const term = document.getElementById('searchUser').value.toLowerCase();
+            const filtered = allUsersCache.filter(u => 
+                (u.username && u.username.toLowerCase().includes(term)) || 
+                (u.email && u.email.toLowerCase().includes(term))
+            );
+            renderUsers(filtered);
+        }
+
+        // Initial fetch
+        fetchPayments();
+    </script>
+</body>
+</html>
