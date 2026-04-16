@@ -60,4 +60,19 @@ function buildPlan(title, picks, description) {
   };
 }
 
-module.exports = { generateCombos };
+async function getActiveCombos() {
+  const dbConfig = require('../../config/db');
+  const Combo = require('../../models/Combo'); // Mismo patrón que predictions
+
+  if (dbConfig.isMemoryMode()) {
+    return dbConfig.getMemStore().combos || [];
+  }
+  
+  try {
+    return await Combo.find({}).sort({ createdAt: -1 }).limit(5);
+  } catch (e) {
+    return [];
+  }
+}
+
+module.exports = { generateCombos, getActiveCombos };
