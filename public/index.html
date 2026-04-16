@@ -46,8 +46,15 @@
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
             margin: 0;
-            overflow: hidden;
+            overflow-x: hidden;
             transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* Mobile-first responsive overrides */
+        @media (max-width: 768px) {
+            body { overflow-y: auto !important; }
+            #appMain { height: auto !important; min-height: 100vh; overflow: visible !important; }
+            .mobile-hidden { display: none !important; }
         }
 
         .manrope { font-family: 'Manrope', sans-serif; }
@@ -204,7 +211,7 @@
     </style>
 </head>
 
-<body class="bg-[var(--bg-deep)] text-[var(--text-main)] font-['Inter'] m-0 overflow-hidden transition-colors duration-400">
+<body class="bg-[var(--bg-deep)] text-[var(--text-main)] font-['Inter'] m-0 overflow-x-hidden transition-colors duration-400">
     <!-- Pantalla de Login -->
     <div id="loginScreen" class="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--bg-deep)] backdrop-blur-md">
         <div class="glass p-10 rounded-3xl max-w-sm w-full space-y-6 shadow-2xl relative overflow-hidden">
@@ -245,137 +252,118 @@
         </div>
     </div>
     
-    <div id="appMain" class="hidden flex-col h-screen flex-grow w-full">
+    <div id="appMain" class="hidden flex-col min-h-screen md:h-screen flex-grow w-full overflow-x-hidden">
 
     <!-- Header Navigation -->
-    <header class="h-14 flex items-center justify-between px-6 border-b border-white/5 bg-[#01040f]/80 backdrop-blur-md z-50">
-        <div class="flex items-center gap-4">
-            <div class="w-7 h-7 rounded-sm bg-blue-600 flex items-center justify-center font-black text-xs text-white">BP</div>
+    <header class="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-0 sm:h-14 border-b border-white/5 bg-[#01040f]/80 backdrop-blur-md z-50 flex-wrap gap-2">
+        <div class="flex items-center gap-2 sm:gap-4">
+            <div class="w-7 h-7 rounded-sm bg-blue-600 flex items-center justify-center font-black text-xs text-white flex-shrink-0">BP</div>
             <div>
-                <h1 class="text-xs font-black uppercase tracking-[0.2em] text-slate-100">BetPredict <span class="text-blue-500">Alpha</span></h1>
+                <h1 class="text-[10px] sm:text-xs font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-100">BetPredict <span class="text-blue-500">Alpha</span></h1>
                 <div class="flex items-center gap-2">
-                    <span class="text-[7px] text-slate-500 font-bold uppercase tracking-widest leading-none">High Conviction Terminal v5.0</span>
+                    <span class="text-[7px] text-slate-500 font-bold uppercase tracking-widest leading-none hidden sm:inline">High Conviction Terminal v5.0</span>
                     <div class="w-1 h-1 rounded-full bg-emerald-500"></div>
                 </div>
             </div>
         </div>
 
-        <div class="flex items-center gap-8">
-            <!-- Logout & Theme Toggle -->
-            <div class="flex items-center gap-4">
-                <button onclick="logout()" class="text-[8px] font-black uppercase text-rose-500 hover:text-rose-400 transition-colors">Cerrar Sesión</button>
-                <div class="h-4 w-px bg-white/5"></div>
-                <div class="flex items-center gap-3">
-                    <span class="text-[8px] font-black uppercase text-slate-500">Modo</span>
-                    <div class="theme-toggle" onclick="toggleTheme()"></div>
-                </div>
+        <div class="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
+            <!-- Token Balance -->
+            <div class="flex items-center gap-2">
+                <span id="tokenBadge" class="text-[10px] font-black px-2 py-0.5 rounded bg-blue-600/20 text-blue-400 border border-blue-500/30 font-['JetBrains_Mono']">
+                   <span id="tokenBalance">0</span> 💎
+                </span>
             </div>
-
-            <div class="hidden md:block h-6 w-px bg-white/5"></div>
- 
-            <div class="flex items-center gap-4">
-                 <div class="flex flex-col items-end">
-                     <span class="text-[7px] text-slate-500 font-black uppercase block leading-none mb-1">Saldo Disponible</span>
-                     <div class="flex items-center gap-2">
-                        <span id="tokenBadge" class="text-[10px] font-black px-2 py-0.5 rounded bg-blue-600/20 text-blue-400 border border-blue-500/30 font-['JetBrains_Mono']">
-                           <span id="tokenBalance">0</span> 💎
-                        </span>
-                     </div>
-                 </div>
-                 <button onclick="openTokensModal()" id="btnTopup" class="px-4 py-2 bg-accent hover:bg-yellow-500 text-black text-[9px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-yellow-900/20 hidden md:flex items-center gap-1.5">
-                     ➕ Recargar Tokens
-                 </button>
-                 <button onclick="openAdminPanel()" id="btnAdminPanel" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-900/20 hidden items-center gap-1.5">
-                     ⚙️ Admin Panel
-                 </button>
-                 <button onclick="openTokensModal()" id="btnTopupMobile" class="p-2 bg-accent hover:bg-yellow-500 text-black rounded-xl transition-all shadow-lg shadow-yellow-900/20 flex md:hidden items-center justify-center">
-                     ➕
-                 </button>
-            </div>
-
-            <div class="text-right hidden sm:block">
-                <span class="text-[7px] text-slate-500 font-black uppercase block leading-none mb-1">Reset Diario</span>
-                <span id="txtReset" class="text-[10px] font-bold text-blue-500/80 mono">--:--:--</span>
+            <!-- Topup buttons -->
+            <button onclick="openTokensModal()" id="btnTopup" class="px-3 py-1.5 bg-accent hover:bg-yellow-500 text-black text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-lg transition-all shadow-lg shadow-yellow-900/20 hidden md:flex items-center gap-1">
+                ➕ Recargar
+            </button>
+            <button onclick="openAdminPanel()" id="btnAdminPanel" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-lg transition-all shadow-lg shadow-emerald-900/20 hidden items-center gap-1">
+                ⚙️ Admin
+            </button>
+            <button onclick="openTokensModal()" id="btnTopupMobile" class="p-1.5 bg-accent hover:bg-yellow-500 text-black rounded-lg transition-all shadow-lg shadow-yellow-900/20 flex md:hidden items-center justify-center text-sm">
+                ➕
+            </button>
+            <!-- Theme + Logout -->
+            <div class="flex items-center gap-2">
+                <div class="theme-toggle" onclick="toggleTheme()"></div>
+                <button onclick="logout()" class="text-[8px] font-black uppercase text-rose-500 hover:text-rose-400 transition-colors">Salir</button>
             </div>
         </div>
     </header>
 
     <!-- Workspace Controls -->
-    <nav class="h-12 flex items-center px-4 justify-between bg-[var(--surface-solid)] border-b border-white/5 z-40">
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-3">
-                <select id="timeRange" aria-label="Selección de Rango de Tiempo" class="bg-transparent border-none text-[9px] font-black uppercase tracking-widest text-slate-500 outline-none hover:text-white transition-colors cursor-pointer">
-                    <option value="next_2h">Mercado 2H</option>
-                    <option value="next_6h">Mercado 6H</option>
-                    <option value="next_12h">Mercado 12H</option>
-                    <option value="full_day" selected>Mercado Hoy</option>
-                </select>
-                <div class="h-3 w-px bg-white/10"></div>
-                <select id="leagueSelect" aria-label="Selección de Liga" class="bg-transparent border-none text-[9px] font-black uppercase tracking-widest text-slate-500 outline-none hover:text-white transition-colors cursor-pointer">
-                    <option value="">Análisis Global</option>
-                    <option value="Champions League">UEFA Champions</option>
-                    <option value="Europa League">UEFA Europa League</option>
-                    <option value="Conference League">Conference League</option>
-                    <option value="Premier League">Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿</option>
-                    <option value="Championship">Championship 🏴󠁧󠁢󠁥󠁮󠁧󠁿</option>
-                    <option value="La Liga">La Liga 🇪🇸</option>
-                    <option value="La Liga 2">La Liga 2 🇪🇸</option>
-                    <option value="Serie A">Serie A 🇮🇹</option>
-                    <option value="Serie B">Serie B 🇮🇹</option>
-                    <option value="Bundesliga">Bundesliga 🇩🇪</option>
-                    <option value="Bundesliga 2">Bundesliga 2 🇩🇪</option>
-                    <option value="Ligue 1">Ligue 1 🇫🇷</option>
-                    <option value="Ligue 2">Ligue 2 🇫🇷</option>
-                    <option value="Libertadores">Copa Libertadores 🏆</option>
-                    <option value="Sudamericana">Copa Sudamericana 🏆</option>
-                    <option value="Liga MX">Liga MX 🇲🇽</option>
-                    <option value="MLS">MLS 🇺🇸</option>
-                    <option value="Saudi Pro League">Saudi Pro League 🇸🇦</option>
-                    <option value="Primeira Liga">Primeira Liga 🇵🇹</option>
-                    <option value="Eredivisie">Eredivisie 🇳🇱</option>
-                    <option value="First Division A">First Division A 🇧🇪</option>
-                    <option value="Brasileirão">Brasileirão Série A 🇧🇷</option>
-                    <option value="Primera División Arg">Primera Div. Arg 🇦🇷</option>
-                    <option value="A-League">A-League 🇦🇺</option>
-                    <option value="J League">J League 🇯🇵</option>
-                    <option value="K League 1">K League 1 🇰🇷</option>
-                    <option value="Liga BetPlay">Liga Colombia 🇨🇴</option>
-                    <option value="Süper Lig">Süper Lig 🇹🇷</option>
-                    <option value="World Cup">World Cup 🌍</option>
-                </select>
-            </div>
+    <nav class="flex items-center px-3 sm:px-4 py-2 sm:py-0 sm:h-12 justify-between bg-[var(--surface-solid)] border-b border-white/5 z-40 flex-wrap gap-2">
+        <div class="flex items-center gap-2 sm:gap-3 overflow-x-auto flex-shrink min-w-0">
+            <select id="timeRange" aria-label="Selección de Rango de Tiempo" class="bg-transparent border-none text-[9px] font-black uppercase tracking-widest text-slate-500 outline-none hover:text-white transition-colors cursor-pointer flex-shrink-0">
+                <option value="next_2h">2H</option>
+                <option value="next_6h">6H</option>
+                <option value="next_12h">12H</option>
+                <option value="full_day" selected>Hoy</option>
+            </select>
+            <div class="h-3 w-px bg-white/10 flex-shrink-0"></div>
+            <select id="leagueSelect" aria-label="Selección de Liga" class="bg-transparent border-none text-[9px] font-black uppercase tracking-widest text-slate-500 outline-none hover:text-white transition-colors cursor-pointer max-w-[140px] sm:max-w-none">
+                <option value="">Global</option>
+                <option value="Champions League">Champions</option>
+                <option value="Europa League">Europa League</option>
+                <option value="Conference League">Conference</option>
+                <option value="Premier League">Premier 🏴󠁧󠁢󠁥󠁮󠁧󠁿</option>
+                <option value="Championship">Championship</option>
+                <option value="La Liga">La Liga 🇪🇸</option>
+                <option value="La Liga 2">La Liga 2</option>
+                <option value="Serie A">Serie A 🇮🇹</option>
+                <option value="Serie B">Serie B</option>
+                <option value="Bundesliga">Bundesliga 🇩🇪</option>
+                <option value="Bundesliga 2">Bundesliga 2</option>
+                <option value="Ligue 1">Ligue 1 🇫🇷</option>
+                <option value="Ligue 2">Ligue 2</option>
+                <option value="Libertadores">Libertadores 🏆</option>
+                <option value="Sudamericana">Sudamericana</option>
+                <option value="Liga MX">Liga MX 🇲🇽</option>
+                <option value="MLS">MLS 🇺🇸</option>
+                <option value="Saudi Pro League">Saudi Pro 🇸🇦</option>
+                <option value="Primeira Liga">Primeira 🇵🇹</option>
+                <option value="Eredivisie">Eredivisie 🇳🇱</option>
+                <option value="First Division A">Div A 🇧🇪</option>
+                <option value="Brasileirão">Brasileirão 🇧🇷</option>
+                <option value="Primera División Arg">Argentina 🇦🇷</option>
+                <option value="A-League">A-League 🇦🇺</option>
+                <option value="J League">J League 🇯🇵</option>
+                <option value="K League 1">K League 🇰🇷</option>
+                <option value="Liga BetPlay">Colombia 🇨🇴</option>
+                <option value="Süper Lig">Süper Lig 🇹🇷</option>
+                <option value="World Cup">World Cup 🌍</option>
+            </select>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
              <div id="selectionBadge" class="hidden px-2 py-0.5 rounded bg-blue-500/5 border border-blue-500/10 flex items-center gap-2">
-                 <span class="text-[8px] font-black text-blue-500 uppercase">Selected:</span>
+                 <span class="text-[8px] font-black text-blue-500 uppercase">Sel:</span>
                  <span id="selectedCount" class="text-[9px] font-bold text-slate-200 mono">0</span>
              </div>
-             <button id="btnAnalyze" onclick="generateAnalysis()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-black uppercase tracking-widest rounded transition-all shadow-xl shadow-blue-900/10">
-                Sincronizar Señales ⚡
+             <button id="btnAnalyze" onclick="generateAnalysis()" class="px-3 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-wider sm:tracking-widest rounded transition-all shadow-xl shadow-blue-900/10 flex-shrink-0">
+                Señales ⚡
              </button>
         </div>
     </nav>
 
     <!-- Main Application Core -->
-    <main class="flex-grow flex flex-col md:flex-row overflow-hidden">
+    <main class="flex-grow flex flex-col md:flex-row overflow-x-hidden md:overflow-hidden">
         
-        <!-- Sidebar: Market Feed -->
-        <aside class="w-full md:w-64 flex flex-col border-r border-white/5 bg-[var(--bg-side)] h-48 md:h-auto border-b md:border-b-0">
+        <!-- Sidebar: Market Feed (hidden on mobile, collapsible) -->
+        <aside class="hidden md:flex w-full md:w-64 flex-col border-r border-white/5 bg-[var(--bg-side)] md:h-auto border-b md:border-b-0">
             <div class="p-3 flex justify-between items-center border-b border-white/5">
                 <h3 class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Market Feed</h3>
                 <span id="matchTotal" class="text-[8px] font-bold text-slate-600 mono">0 Encontrados</span>
             </div>
             
             <div id="matchList" class="flex-grow overflow-y-auto scroller p-2 space-y-1">
-                <!-- Match List Skeleton -->
                 <div class="p-2 space-y-2">
                     <div class="h-4 skeleton rounded-sm w-3/4"></div>
                     <div class="h-3 skeleton rounded-sm w-1/2 opacity-50"></div>
                 </div>
             </div>
 
-            <!-- ROI Preview -->
             <div id="roiPreview" class="p-4 bg-[var(--surface-solid)] border-t border-white/5 hidden">
                  <div class="flex justify-between items-center mb-1">
                     <span class="text-[8px] font-black text-slate-500 uppercase">Cuota Proyectada</span>
@@ -389,7 +377,7 @@
         </aside>
 
         <!-- Dynamic Content Engine -->
-        <section class="flex-grow overflow-y-auto bg-[var(--bg-deep)] scroller p-6 space-y-8">
+        <section class="flex-grow overflow-y-auto bg-[var(--bg-deep)] scroller p-3 sm:p-6 space-y-6 sm:space-y-8">
             
             <!-- Strategic Hero Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -425,20 +413,20 @@
             </div>
 
             <!-- Full Analytical Grid -->
-            <div class="grid grid-cols-12 gap-8">
+            <div class="grid grid-cols-12 gap-4 sm:gap-8">
                 
                 <!-- Main Feed -->
-                <div class="col-span-12 xl:col-span-8 space-y-6">
+                <div class="col-span-12 xl:col-span-8 space-y-4 sm:space-y-6">
                     <!-- Dynamic Filter Bar -->
-                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
-                         <div class="flex gap-2">
-                             <button onclick="setFilter('all')" class="filter-chip active" data-filter="all">Todos</button>
-                             <button onclick="setFilter('safe')" class="filter-chip" data-filter="safe">Seguros ✅</button>
-                             <button onclick="setFilter('value')" class="filter-chip" data-filter="value">Valor 📈</button>
-                             <button onclick="setFilter('moonshot')" class="filter-chip" data-filter="moonshot">Moonshots 🚀</button>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 border-b border-white/5 gap-2">
+                         <div class="flex gap-1.5 sm:gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                             <button onclick="setFilter('all')" class="filter-chip active flex-shrink-0" data-filter="all">Todos</button>
+                             <button onclick="setFilter('safe')" class="filter-chip flex-shrink-0" data-filter="safe">Seguros ✅</button>
+                             <button onclick="setFilter('value')" class="filter-chip flex-shrink-0" data-filter="value">Valor 📈</button>
+                             <button onclick="setFilter('moonshot')" class="filter-chip flex-shrink-0" data-filter="moonshot">Moonshots 🚀</button>
                          </div>
-                         <div class="flex items-center gap-4">
-                            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Ordenar por:</span>
+                         <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                            <span class="text-[8px] font-black text-slate-500 uppercase hidden sm:inline">Ordenar:</span>
                             <select onchange="setSort(this.value)" class="bg-transparent border-none text-[9px] font-black uppercase text-slate-400 outline-none cursor-pointer hover:text-white">
                                 <option value="score">Score</option>
                                 <option value="odds">Cuota</option>
@@ -447,9 +435,8 @@
                          </div>
                     </div>
                     
-                    <div id="predsGrid" class="space-y-4">
-                        <!-- Loading State -->
-                        <div class="p-20 text-center opacity-10"><span class="text-[11px] font-black uppercase tracking-[0.5em]">System Idle</span></div>
+                    <div id="predsGrid" class="space-y-3 sm:space-y-4">
+                        <div class="p-10 sm:p-20 text-center opacity-10"><span class="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.3em] sm:tracking-[0.5em]">System Idle</span></div>
                     </div>
                 </div>
 
@@ -513,78 +500,75 @@
     </main>
     </div> <!-- Close appMain -->
 
-    <!-- Modal: Upgrade to Tokens -->
-    <div id="tokensModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[150] hidden flex items-center justify-center p-3 sm:p-4">
-        <div class="glass max-w-3xl w-full rounded-[30px] sm:rounded-[40px] overflow-y-auto scroller flex flex-col lg:flex-row relative" style="max-height:95vh">
-            <button onclick="closeTokensModal()" class="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-500 hover:text-white z-20 font-black text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-all">&times;</button>
+    <!-- Modal: Upgrade to Tokens (Mobile-first, fully scrollable) -->
+    <div id="tokensModal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[150] hidden items-center justify-center" style="display:none">
+        <div class="w-full h-full overflow-y-auto scroller flex items-start sm:items-center justify-center p-0 sm:p-4">
+            <div class="glass w-full sm:max-w-3xl sm:rounded-[30px] overflow-hidden flex flex-col lg:flex-row relative sm:my-4" style="min-height: 100vh; min-height: 100dvh;" id="tokensModalInner">
+                <button onclick="closeTokensModal()" class="absolute top-4 right-4 text-white/70 hover:text-white z-20 font-black text-2xl w-10 h-10 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 transition-all">&times;</button>
 
-            <!-- LEFT: Price + QR -->
-            <div class="w-full lg:w-5/12 flex flex-col pt-8 lg:pt-0" style="background: linear-gradient(160deg, #1d3461 0%, #1a1a2e 100%)">
-
-                <!-- Header -->
-                <div class="p-8 pb-4 text-center">
-                    <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3">💎</div>
-                    <h2 class="text-2xl font-black text-white uppercase tracking-tighter">Pack 50 Tokens</h2>
+                <!-- LEFT: Price + QR -->
+                <div class="w-full lg:w-5/12 flex flex-col items-center py-8 px-6" style="background: linear-gradient(160deg, #1d3461 0%, #1a1a2e 100%)">
+                    <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-xl mb-3">💎</div>
+                    <h2 class="text-xl sm:text-2xl font-black text-white uppercase tracking-tighter">Pack 50 Tokens</h2>
                     <p class="text-blue-300 text-[10px] font-bold uppercase tracking-widest opacity-80 mt-1">Costo por análisis: 5 Tokens</p>
-                    <div class="text-4xl font-black text-white italic mt-3">S/ 20.00</div>
+                    <div class="text-3xl sm:text-4xl font-black text-white italic mt-3">S/ 20.00</div>
                     <p class="text-[9px] text-blue-200 opacity-60 mt-1">Suficiente para 10 análisis profundos</p>
-                </div>
 
-                <!-- QR -->
-                <div class="flex flex-col items-center pb-6 px-6 gap-3 pt-6">
-                    <div class="w-32 h-32 flex-shrink-0 bg-white p-2 rounded-2xl shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:shadow-[0_0_40px_rgba(168,85,247,0.5)] transform hover:scale-105 hover:-translate-y-1 transition-all duration-300 relative group cursor-pointer border-2 border-transparent hover:border-purple-500/50">
-                        <div class="absolute inset-0 bg-purple-500/10 rounded-2xl animate-pulse"></div>
-                        <img id="qrImg" src="" alt="Yape QR" class="w-full h-full object-cover rounded-xl relative z-10">
+                    <!-- QR -->
+                    <div class="flex flex-col items-center gap-3 mt-6">
+                        <div class="w-40 h-40 sm:w-36 sm:h-36 flex-shrink-0 bg-white p-2 rounded-2xl shadow-[0_0_30px_rgba(168,85,247,0.4)] relative overflow-hidden">
+                            <img id="qrImg" src="/public/img/yape-qr.png" alt="Yape QR" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=YAPE_918762620_CRISTIAN&color=7c227b&bgcolor=ffffff'">
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[9px] font-black uppercase text-purple-300">Yapear a nombre de:</p>
+                            <p class="text-sm font-black text-white mt-0.5"><span id="premiumAdminName">Cristian</span></p>
+                            <p class="text-[10px] font-bold text-slate-400 mono"><span id="premiumAdminPhone">918762620</span></p>
+                        </div>
                     </div>
-                    <div class="text-center">
-                        <p class="text-[9px] font-black uppercase text-blue-300">Yapear a nombre de:</p>
-                        <p class="text-[10px] font-bold text-white mt-0.5"><span id="premiumAdminName">ADMIN</span></p>
-                        <p class="text-[9px] font-bold text-slate-400 mono"><span id="premiumAdminPhone">9XXXXXX9</span></p>
+                </div>
+
+                <!-- RIGHT: Upload instructions -->
+                <div class="w-full lg:w-7/12 p-6 sm:p-8 space-y-5 bg-[var(--bg-deep)]">
+
+                    <!-- Urgency hook -->
+                    <div class="p-3 sm:p-4 rounded-2xl border border-accent/20" style="background: rgba(197,160,33,0.05)">
+                        <p class="text-[11px] font-black text-accent uppercase tracking-tight">🚀 Desbloquea el Motor de IA</p>
+                        <p class="text-[9px] text-slate-400 font-bold mt-1">Cada predicción gasta 5 tokens. Recarga ahora para continuar recibiendo señales diarias.</p>
                     </div>
-                </div>
-            </div>
 
-            <!-- RIGHT: Upload instructions -->
-            <div class="w-full lg:w-7/12 p-8 space-y-6 bg-[var(--bg-deep)] overflow-visible lg:overflow-y-auto">
-
-                <!-- Urgency hook -->
-                <div class="p-4 rounded-2xl border border-accent/20" style="background: rgba(197,160,33,0.05)">
-                    <p class="text-[11px] font-black text-accent uppercase tracking-tight">🚀 Desbloquea el Motor de IA</p>
-                    <p class="text-[9px] text-slate-400 font-bold mt-1">Cada predicción gasta 5 tokens. Recarga ahora para continuar recibiendo señales diarias.</p>
-                </div>
-
-                <!-- Steps -->
-                <div>
-                    <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">Cómo recargar</h3>
-                    <ul class="text-[10px] space-y-4 font-bold text-slate-400">
-                        <li class="flex gap-3 items-start">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-black">1</span>
-                            <span>Escanea el QR o yapea <strong class="text-white">S/ 20</strong> al número indicado.</span>
-                        </li>
-                        <li class="flex gap-3 items-start">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-black">2</span>
-                            <span>Toma una captura de pantalla del comprobante exitoso.</span>
-                        </li>
-                        <li class="flex gap-3 items-start">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-black">3</span>
-                            <span>Súbela aquí. Te activamos 50 tokens en menos de 5 minutos.</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Upload -->
-                <div class="space-y-3">
-                    <div class="p-5 bg-white/5 border border-dashed border-white/10 rounded-2xl text-center hover:border-accent/40 transition-colors">
-                        <input type="file" id="compFile" class="hidden" accept="image/*" onchange="updateFileName()">
-                        <label for="compFile" class="cursor-pointer block">
-                            <div class="text-2xl mb-2">📸</div>
-                            <div id="fileText" class="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Subir Comprobante</div>
-                            <div class="text-[8px] text-slate-600 font-bold italic">PNG, JPG hasta 5MB</div>
-                        </label>
+                    <!-- Steps -->
+                    <div>
+                        <h3 class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">Cómo recargar</h3>
+                        <ul class="text-[10px] space-y-3 font-bold text-slate-400">
+                            <li class="flex gap-3 items-start">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-black">1</span>
+                                <span>Escanea el QR o yapea <strong class="text-white">S/ 20</strong> al número indicado.</span>
+                            </li>
+                            <li class="flex gap-3 items-start">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-black">2</span>
+                                <span>Toma captura de pantalla del comprobante.</span>
+                            </li>
+                            <li class="flex gap-3 items-start">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center flex-shrink-0 text-[9px] font-black">3</span>
+                                <span>Súbela aquí. Activamos 50 tokens en menos de 5 minutos.</span>
+                            </li>
+                        </ul>
                     </div>
-                    <button id="btnUpload" onclick="uploadEvidence()" class="w-full py-4 rounded-2xl text-black font-black uppercase text-[10px] tracking-widest transition-all shadow-xl flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #c5a021, #f59e0b)">
-                        ⚡ Enviar a Validación
-                    </button>
+
+                    <!-- Upload -->
+                    <div class="space-y-3 pb-6">
+                        <div class="p-4 bg-white/5 border border-dashed border-white/10 rounded-2xl text-center hover:border-accent/40 transition-colors">
+                            <input type="file" id="compFile" class="hidden" accept="image/*" onchange="updateFileName()">
+                            <label for="compFile" class="cursor-pointer block">
+                                <div class="text-2xl mb-1">📸</div>
+                                <div id="fileText" class="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Subir Comprobante</div>
+                                <div class="text-[8px] text-slate-600 font-bold italic">PNG, JPG hasta 5MB</div>
+                            </label>
+                        </div>
+                        <button id="btnUpload" onclick="uploadEvidence()" class="w-full py-4 rounded-2xl text-black font-black uppercase text-[10px] tracking-widest transition-all shadow-xl flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #c5a021, #f59e0b)">
+                            ⚡ Enviar a Validación
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -867,16 +851,25 @@
         }
 
         function openTokensModal() {
-            document.getElementById('tokensModal').classList.remove('hidden');
+            const modal = document.getElementById('tokensModal');
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
             document.getElementById('premiumAdminName').innerText = terminalConfig.premium.adminName;
             document.getElementById('premiumAdminPhone').innerText = terminalConfig.premium.adminPhone;
-            document.getElementById('qrImg').src = terminalConfig.premium.qrUrl;
+            const qrImg = document.getElementById('qrImg');
+            if (qrImg && !qrImg.src.includes('yape-qr')) {
+                qrImg.src = terminalConfig.premium.qrUrl;
+            }
+            document.body.style.overflow = 'hidden';
         }
 
         function closeTokensModal() {
-            document.getElementById('tokensModal').classList.add('hidden');
+            const modal = document.getElementById('tokensModal');
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
             document.getElementById('compFile').value = '';
             document.getElementById('fileText').innerText = 'Subir Comprobante';
+            document.body.style.overflow = '';
         }
 
         async function startApp() {
