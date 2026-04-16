@@ -7,20 +7,27 @@ const userSchema = new mongoose.Schema({
     unique: true,
     trim: true
   },
-  email: {
-    type: String,
-    sparse: true, // Optional for manual users, required for Google
-    trim: true
-  },
   password: {
     type: String,
+    required: true
   },
-  googleId: {
+  nombre: {
     type: String,
-    unique: true,
-    sparse: true
+    required: true
   },
-  name: String,
+  apellido: {
+    type: String,
+    required: true
+  },
+  dni: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  fechaNacimiento: {
+    type: String, // String formato YYYY-MM-DD
+    required: true
+  },
   role: {
     type: String,
     enum: ['user', 'admin'],

@@ -19,7 +19,15 @@ const authMiddleware = async (req, res, next) => {
       return next();
     }
 
-    const user = await User.findById(decoded.id);
+    let user;
+    const dbConfig = require('../../config/db');
+    if (dbConfig.isMemoryMode()) {
+       const memStore = dbConfig.getMemStore();
+       user = memStore.users.get(decoded.id);
+    } else {
+       user = await User.findById(decoded.id);
+    }
+
     if (!user) {
       return res.status(401).json({ error: 'Usuario no encontrado' });
     }
