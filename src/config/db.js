@@ -9,6 +9,8 @@ class MemoryStore {
   constructor() {
     this.matches     = new Map();
     this.predictions = new Map();
+    this.users       = new Map();
+    this.payments    = new Map();
     this.combos      = [];
     this.usage = {
         aiCallsCount: 0,
@@ -55,7 +57,12 @@ async function connectDB() {
 
 function isMemoryMode() { return usingMemory; }
 function isConnected()  { return connected; }
-function getMemStore()  { return memStore; }
+function getMemStore()  { 
+  // Defensive check for stale memory objects
+  if (!memStore.users) memStore.users = new Map();
+  if (!memStore.payments) memStore.payments = new Map();
+  return memStore; 
+}
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
