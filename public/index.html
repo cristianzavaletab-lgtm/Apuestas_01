@@ -212,72 +212,62 @@
 
 <body class="bg-[var(--bg-deep)] text-[var(--text-main)] font-['Inter'] m-0 overflow-x-hidden transition-colors duration-400">
     <!-- Pantalla de Login -->
-    <div id="loginScreen" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#020617] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-[#020617]">
-        <!-- Ambient Glow Effects -->
-        <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none opacity-50"></div>
-        <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-600/5 rounded-full blur-[100px] pointer-events-none opacity-30"></div>
+    <div id="loginScreen" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#020617] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 to-[#020617] px-4">
+        <!-- Ambient subtle glow -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-[400px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none"></div>
         
-        <div class="p-8 sm:p-10 rounded-[2.5rem] max-w-sm w-full space-y-6 shadow-[0_0_80px_-20px_rgba(37,99,235,0.3)] bg-slate-900/40 backdrop-blur-3xl border border-white/10 relative overflow-hidden transition-all duration-500">
-             <div class="text-center space-y-3 relative z-10">
-                 <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl mx-auto flex items-center justify-center text-white font-black text-3xl mb-4 shadow-[0_10px_30px_-5px_rgba(37,99,235,0.5)] border border-blue-400/20 active:scale-95 transition-transform cursor-pointer">BP</div>
-                 <h2 class="text-2xl font-black text-white uppercase tracking-[0.2em] manrope">BetPredict</h2>
-                 <p class="text-[9px] text-blue-400 uppercase tracking-[0.4em] font-black opacity-80">Terminal de Inteligencia Elite</p>
+        <div class="bg-[#0f172a]/90 backdrop-blur-2xl border border-white/5 rounded-[2rem] max-w-[400px] w-full p-8 sm:p-10 shadow-2xl relative z-10 overflow-hidden">
+             <!-- Decor line -->
+             <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+             
+             <div class="text-center space-y-3 mb-8">
+                 <div class="w-14 h-14 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-blue-900/40 mb-4 transition-transform hover:scale-105 active:scale-95 cursor-pointer">BP</div>
+                 <h1 class="text-xl font-bold text-white tracking-[0.2em] uppercase manrope">BetPredict</h1>
+                 <div class="h-[1px] w-12 bg-blue-500/30 mx-auto"></div>
+                 <p class="text-[9px] text-slate-400 uppercase tracking-[0.3em] font-medium">Professional Trading Terminal</p>
              </div>
              
              <!-- VISTA LOGIN -->
-             <div id="viewLogin" class="space-y-4 relative z-10 transition-all duration-500 mt-6">
-                 <div class="group">
-                     <label class="block text-[8px] font-black tracking-widest text-slate-500 uppercase mb-1.5 ml-1 group-focus-within:text-blue-500 transition-colors">Acceso Autorizado</label>
-                     <input type="text" id="loginUser" placeholder="Usuario o DNI" class="w-full bg-[#020617]/60 border border-slate-800 rounded-2xl px-5 py-4 text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all">
+             <div id="viewLogin" class="space-y-5 transition-all duration-300">
+                 <div class="space-y-1.5">
+                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Terminal ID</label>
+                     <input type="text" id="loginUser" placeholder="Usuario o DNI" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-700 outline-none focus:border-blue-500 focus:bg-slate-900 transition-all">
                  </div>
-                 <div class="group">
-                     <input type="password" id="loginPass" placeholder="Contraseña de Terminal" class="w-full bg-[#020617]/60 border border-slate-800 rounded-2xl px-5 py-4 text-sm text-white placeholder-slate-600 outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all" onkeyup="if(event.key==='Enter') doLogin()">
+                 <div class="space-y-1.5">
+                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Access Key</label>
+                     <input type="password" id="loginPass" placeholder="••••••••" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-700 outline-none focus:border-blue-500 focus:bg-slate-900 transition-all" onkeyup="if(event.key==='Enter') doLogin()">
                  </div>
-                 <div class="flex flex-col gap-4 pt-4">
-                     <button onclick="doLogin()" id="btnLogin" class="w-full py-4.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-2xl text-white font-black uppercase text-[11px] tracking-[0.2em] transition-all active:scale-[0.97] shadow-[0_15px_30px_-10px_rgba(37,99,235,0.4)] border border-blue-400/20">Ingresar al Sistema</button>
-                     <button onclick="toggleAuthView('register')" class="w-full py-2 text-slate-500 hover:text-slate-300 font-black uppercase text-[9px] tracking-[0.15em] transition-all flex items-center justify-center gap-2">
-                         <span>Sin credenciales?</span>
-                         <span class="text-blue-500 underline decoration-blue-500/30 underline-offset-4">Solicitar Afiliación</span>
+                 <div class="pt-4 flex flex-col gap-3">
+                     <button onclick="doLogin()" id="btnLogin" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase text-[11px] tracking-widest rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20">Acceder ahora</button>
+                     <button onclick="toggleAuthView('register')" class="w-full py-3 text-slate-400 hover:text-white font-bold uppercase text-[9px] tracking-widest transition-colors flex items-center justify-center gap-2">
+                        <span>Sin Registro?</span>
+                        <span class="text-blue-500 hover:underline">Solicitar Acceso</span>
                      </button>
                  </div>
              </div>
 
              <!-- VISTA REGISTRO (KYC) -->
-             <div id="viewRegister" class="hidden space-y-4 relative z-10 transition-all duration-500 mt-4">
-                 <div class="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-3 mb-4">
-                     <p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest text-center">Formulario de Registro KYC</p>
-                 </div>
-                 
+             <div id="viewRegister" class="hidden space-y-4 transition-all duration-300">
                  <div class="grid grid-cols-2 gap-3">
-                     <div class="space-y-1">
-                         <input type="text" id="regNombre" placeholder="Nombre" class="w-full bg-[#020617]/60 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 outline-none focus:border-emerald-500/50 transition-all">
-                     </div>
-                     <div class="space-y-1">
-                         <input type="text" id="regApellido" placeholder="Apellido" class="w-full bg-[#020617]/60 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 outline-none focus:border-emerald-500/50 transition-all">
-                     </div>
+                     <input type="text" id="regNombre" placeholder="Nombre" class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-3 text-xs text-white placeholder-slate-700 outline-none focus:border-blue-500 transition-all">
+                     <input type="text" id="regApellido" placeholder="Apellido" class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-3 text-xs text-white placeholder-slate-700 outline-none focus:border-blue-500 transition-all">
                  </div>
                  <div class="grid grid-cols-2 gap-3">
-                     <div class="space-y-1">
-                         <input type="text" id="regDNI" placeholder="DNI (8 dígitos)" maxlength="8" inputmode="numeric" class="w-full bg-[#020617]/60 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 outline-none focus:border-emerald-500/50 transition-all" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
-                     </div>
-                     <div class="space-y-1">
-                         <input type="date" id="regFecha" class="w-full bg-[#020617]/60 border border-slate-800 rounded-xl px-3 py-3 text-xs text-slate-500 outline-none focus:border-emerald-500/50 transition-all cursor-pointer" title="Fecha de Nacimiento">
-                     </div>
+                     <input type="text" id="regDNI" placeholder="DNI (8 dígitos)" maxlength="8" inputmode="numeric" onkeypress="return event.charCode >= 48 && event.charCode <= 57" class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-3 text-xs text-white placeholder-slate-700 outline-none focus:border-blue-500 transition-all">
+                     <input type="date" id="regFecha" class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-3 py-3 text-xs text-slate-500 outline-none focus:border-blue-500 transition-all cursor-pointer" title="Fecha de Nacimiento">
                  </div>
-                 <div class="pt-2 border-t border-white/5 space-y-3">
-                     <input type="text" id="regUser" placeholder="Username de Terminal" class="w-full bg-[#020617]/60 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 outline-none focus:border-blue-500/50 transition-all">
-                     <input type="password" id="regPass" placeholder="Nueva Contraseña" class="w-full bg-[#020617]/60 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 outline-none focus:border-blue-500/50 transition-all" onkeyup="if(event.key==='Enter') doRegister()">
-                 </div>
+                 <div class="h-[1px] bg-white/5 my-2"></div>
+                 <input type="text" id="regUser" placeholder="Nombre de Usuario Único" class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-3 text-xs text-white placeholder-slate-700 outline-none focus:border-blue-500 transition-all">
+                 <input type="password" id="regPass" placeholder="Contraseña Sugerida" class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-3 text-xs text-white placeholder-slate-700 outline-none focus:border-blue-500 transition-all" onkeyup="if(event.key==='Enter') doRegister()">
                  
-                 <div class="flex flex-col gap-3 pt-2">
-                     <button onclick="doRegister()" id="btnRegister" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest transition-all active:scale-[0.97] shadow-lg shadow-emerald-900/30 border border-emerald-400/20">Finalizar Registro</button>
-                     <button onclick="toggleAuthView('login')" class="w-full py-2 text-slate-500 hover:text-white font-black uppercase text-[8px] tracking-[0.2em] transition-all">← Cancelar y Volver</button>
+                 <div class="flex flex-col gap-3 pt-4">
+                     <button onclick="doRegister()" id="btnRegister" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase text-[10px] tracking-widest rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-emerald-900/20">Completar Afiliación</button>
+                     <button onclick="toggleAuthView('login')" class="w-full py-2 text-slate-500 hover:text-white font-bold uppercase text-[9px] tracking-widest transition-colors">Volver al Ingreso</button>
                  </div>
              </div>
         </div>
         
-        <!-- Bottom Info -->
-        <p class="absolute bottom-8 text-[9px] font-black uppercase tracking-[0.5em] text-slate-700 pointer-events-none">Secure Terminal Infrastructure • 2026</p>
+        <div class="absolute bottom-6 text-[8px] text-slate-600 font-bold uppercase tracking-[0.5em] pointer-events-none">BetPredict Trading Systems • 2026</div>
     </div>
     
     <div id="appMain" class="hidden flex-col min-h-screen md:h-screen flex-grow w-full overflow-x-hidden">
@@ -545,7 +535,7 @@
                     <!-- QR -->
                     <div class="flex flex-col items-center gap-3 mt-6">
                         <div class="w-40 h-40 sm:w-36 sm:h-36 flex-shrink-0 bg-white p-2 rounded-2xl shadow-[0_0_30px_rgba(168,85,247,0.4)] relative overflow-hidden">
-                            <img id="qrImg" src="/public/img/yape-qr.png" alt="Yape QR" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=YAPE_918762620_CRISTIAN&color=7c227b&bgcolor=ffffff'">
+                            <img id="qrImg" src="/img/yape-qr.png" alt="Yape QR" class="w-full h-full object-contain rounded-xl" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=YAPE_918762620_CRISTIAN&color=7c227b&bgcolor=ffffff'">
                         </div>
                         <div class="text-center">
                             <p class="text-[9px] font-black uppercase text-purple-300">Yapear a nombre de:</p>
