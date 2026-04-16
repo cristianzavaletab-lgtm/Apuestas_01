@@ -12,5 +12,6 @@ router.post('/payments/:id/approve', adminController.approvePayment);
 router.post('/payments/:id/reject', adminController.rejectPayment);
 router.get('/apistats', adminController.getApiStats);
 router.get('/users', adminController.getUsers);
+router.post('/users/:id/tokens', adminController.addTokensToUser);
 
 module.exports = router;

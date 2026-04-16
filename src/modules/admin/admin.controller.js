@@ -75,10 +75,28 @@ async function getUsers(req, res) {
   }
 }
 
+async function addTokensToUser(req, res) {
+  try {
+    const { id } = req.params;
+    const { amount } = req.body;
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    
+    user.tokens = (user.tokens || 0) + Number(amount);
+    await user.save();
+    
+    res.json({ message: 'Tokens actualizados', tokens: user.tokens });
+  } catch (error) {
+    logger.error('Error al añadir tokens:', error);
+    res.status(500).json({ error: 'Error interno al actualizar tokens' });
+  }
+}
+
 module.exports = {
   getPendingPayments,
   approvePayment,
   rejectPayment,
   getApiStats,
-  getUsers
+  getUsers,
+  addTokensToUser
 };
