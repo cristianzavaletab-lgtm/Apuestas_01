@@ -24,29 +24,37 @@ async function generatePicks(req, res) {
     // 1.5 Token Economy Check
     let userDb;
     if (req.user.role !== 'admin') {
-      userDb = await User.findById(req.user.id);
-      if (!userDb) {
-        return res.status(401).json({ error: 'Usuario no encontrado' });
+      if (dbConfig.isMemoryMode()) {
+        const memStore = dbConfig.getMemStore();
+        userDb = memStore.users.get(req.user._id || req.user.id);
+        if (!userDb) return res.status(401).json({ error: 'Usuario no encontrado en memoria' });
+        
+        if (userDb.tokens < 5) {
+           return res.status(402).json({ error: 'Insuficientes tokens (💎). Necesitas 5 por análisis.' });
+        }
+        userDb.tokens -= 5;
+        memStore.users.set(userDb._id, userDb);
+        dbConfig.saveMemDb(); // Persist token deduction
+      } else {
+        userDb = await User.findById(req.user._id || req.user.id);
+        if (!userDb) return res.status(401).json({ error: 'Usuario no encontrado' });
+        if (userDb.tokens < 5) {
+           return res.status(402).json({ error: 'Insuficientes tokens. Cuesta 5 tokens por análisis.' });
+        }
+        userDb.tokens -= 5;
+        await userDb.save();
       }
-      
-      if (userDb.tokens < 5) {
-         return res.status(402).json({ error: 'Insuficientes tokens. Cuesta 5 tokens por análisis.' });
-      }
-      userDb.tokens -= 5;
-      await userDb.save();
     } else {
       userDb = { role: 'admin', tokens: 999999 };
     }
 
-    // 2. Fetch Signals (Filtered by timeRange) - Use Server UTC date to sync with Mock Data generator
+    // 2. Fetch Signals
     const serverDate = new Date().toISOString().split('T')[0];
     let matches = await fetchMatchesByDate(serverDate, leagues, timeRange);
     
-    // 3. Selective Targeting Logic (PRECISION UPGRADE)
     let matchesToProcess = matches;
     if (selectedMatchIds && selectedMatchIds.length > 0) {
         matchesToProcess = matches.filter(m => selectedMatchIds.includes(m.externalId));
-        logger.info(`🎯 Focus Analysis: Priority for ${matchesToProcess.length} selected matches.`);
     } else {
         const limit = 5;
         matchesToProcess = matches.slice(0, limit);
@@ -55,7 +63,6 @@ async function generatePicks(req, res) {
     const predictions = [];
     for (const match of matchesToProcess) {
        const result = await calculateProbabilities(match);
-       // Increment Usage
        await incrementUsage(todayStr);
 
        if (result.pick !== 'NO_BET') {
@@ -85,10 +92,7 @@ async function generatePicks(req, res) {
        }
     }
 
-    // 4. Strategic Recommendations (HERO PICKS)
     let recommendations = getTargetedRecommendations(predictions);
-
-    // 5. Strategic Portfolios
     let combos = generateCombos(predictions);
 
     res.json({ 
@@ -99,9 +103,10 @@ async function generatePicks(req, res) {
         combos, 
         user: {
             role: userDb.role,
-            tokens: userDb.tokens
+            tokens: (userDb.role === 'admin') ? '∞' : userDb.tokens
         }
     });
+
   } catch(e) {
     logger.error(`Error generating picks: ${e.message}`);
     res.status(500).json({ error: 'Fallo en el motor de generación' });
@@ -118,9 +123,15 @@ async function getUsageStats(req, res) {
 async function getOrCreateUsage(dateKey) {
     if (dbConfig.isMemoryMode()) {
         const store = dbConfig.getMemStore();
+        // Defensive: Parse back to Date if it was loaded as String from JSON
+        if (!(store.usage.lastResetAt instanceof Date)) {
+            store.usage.lastResetAt = new Date(store.usage.lastResetAt);
+        }
+
         if (store.usage.lastResetAt.toISOString().split('T')[0] !== dateKey) {
             store.usage.aiCallsCount = 0;
             store.usage.lastResetAt = new Date();
+            dbConfig.saveMemDb();
         }
         return store.usage;
     }
@@ -136,6 +147,7 @@ async function incrementUsage(dateKey) {
     if (dbConfig.isMemoryMode()) {
         const store = dbConfig.getMemStore();
         store.usage.aiCallsCount++;
+        // We don't save every increment to avoid excessive I/O, but it's safe
         return;
     }
     await Usage.updateOne({ dateKey }, { $inc: { aiCallsCount: 1 } });
