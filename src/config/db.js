@@ -43,6 +43,10 @@ async function connectDB() {
       });
       connected = true;
       logger.info('✅ MongoDB conectado');
+      
+      // Auto-Seed Admin
+      await ensureAdminUser();
+      
       return;
     } catch (err) {
       attempts++;
@@ -53,6 +57,30 @@ async function connectDB() {
 
   logger.warn('⚠️  MongoDB no disponible → usando almacenamiento en MEMORIA');
   usingMemory = true;
+}
+
+// Auto-creación de administrador maestro
+async function ensureAdminUser() {
+  try {
+    const User = require('../modules/auth/user.model');
+    const adminExists = await User.findOne({ username: 'cristian' });
+    
+    if (!adminExists) {
+      logger.info('🔧 Configurando Administrador Maestro en Atlas...');
+      await User.create({
+        username: 'cristian',
+        password: '$2b$10$xms8Lwne6HzC/GtUoVmQJeBz4BSw8SG7cGC4.VUYFHnCKAfprL2my', // 60253405Cz
+        nombre: 'cristian',
+        apellido: 'Zavaleta',
+        dni: '60253405',
+        role: 'admin',
+        tokens: 50
+      });
+      logger.info('✅ Administrador [cristian] creado con éxito.');
+    }
+  } catch (err) {
+    logger.error('Error asegurando Admin User:', err.message);
+  }
 }
 
 const fs = require('fs');

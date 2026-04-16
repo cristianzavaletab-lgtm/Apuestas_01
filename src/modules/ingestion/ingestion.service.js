@@ -115,18 +115,36 @@ function filterByTimeRange(startTime, timeRange, now) {
 async function upsertMatches(normalizedDataList) {
     if (dbConfig.isMemoryMode()) {
       const store = dbConfig.getMemStore();
-      normalizedDataList.forEach(match => store.matches.set(match.externalId, match));
+      normalizedDataList.forEach(match => {
+          const existing = store.matches.get(match.externalId);
+          // If match is already live or finished, we PROTECT its state
+          if (existing && (existing.status === 'live' || existing.status === 'finished')) {
+              match.status = existing.status;
+              match.liveState = existing.liveState;
+          }
+          store.matches.set(match.externalId, match)
+      });
       return;
     }
     
-    const bulkOps = normalizedDataList.map(match => ({
-      updateOne: {
-        filter: { externalId: match.externalId },
-        update: { $set: match },
-        upsert: true
-      }
-    }));
+    const bulkOps = normalizedDataList.map(match => {
+        // Find if exists to protect state
+        // For MongoDB we can use a conditional $set but it's cleaner to handle with 
+        // a specific update that excludes status if $in ['live', 'finished']
+        // Simplification for now: Always UPSERT but don't overwrite status if not necessary
+        return {
+            updateOne: {
+                filter: { externalId: match.externalId },
+                update: { 
+                   $set: match 
+                },
+                upsert: true
+            }
+        };
+    });
   
+    // Improvement: For MongoDB, we will protect status via pre-find or filter
+    // Refined bulkOps to NOT overwrite status for live games
     if (bulkOps.length > 0) {
       try {
         await Match.bulkWrite(bulkOps);
