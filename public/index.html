@@ -557,15 +557,20 @@
 
                     <!-- Upload -->
                     <div class="space-y-3 pb-6">
-                        <div class="p-4 bg-white/5 border border-dashed border-white/10 rounded-2xl text-center hover:border-accent/40 transition-colors">
+                        <div id="uploadArea" class="p-4 bg-white/5 border border-dashed border-white/10 rounded-2xl text-center hover:border-accent/40 transition-colors relative">
                             <input type="file" id="compFile" class="hidden" accept="image/*" onchange="updateFileName()">
-                            <label for="compFile" class="cursor-pointer block">
+                            <label for="compFile" class="cursor-pointer block" id="uploadLabel">
                                 <div class="text-2xl mb-1">📸</div>
                                 <div id="fileText" class="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Subir Comprobante</div>
                                 <div class="text-[8px] text-slate-600 font-bold italic">PNG, JPG hasta 5MB</div>
                             </label>
+                            <!-- Preview + Remove -->
+                            <div id="filePreview" class="hidden mt-2">
+                                <img id="filePreviewImg" class="w-full h-24 object-cover rounded-lg border border-white/10">
+                                <button onclick="removeSelectedFile()" class="absolute top-2 right-2 w-6 h-6 bg-rose-600 hover:bg-rose-500 text-white rounded-full flex items-center justify-center text-xs font-black transition-all shadow-lg">×</button>
+                            </div>
                         </div>
-                        <button id="btnUpload" onclick="uploadEvidence()" class="w-full py-4 rounded-2xl text-black font-black uppercase text-[10px] tracking-widest transition-all shadow-xl flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #c5a021, #f59e0b)">
+                        <button id="btnUpload" onclick="uploadEvidence()" class="w-full py-4 rounded-2xl text-black font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center justify-center gap-2 active:scale-95 active:shadow-none transition-all duration-150" style="background: linear-gradient(135deg, #c5a021, #f59e0b)">
                             ⚡ Enviar a Validación
                         </button>
                     </div>
@@ -924,7 +929,26 @@
         // --- PREMIUM ACTIONS ---
         function updateFileName() {
             const file = document.getElementById('compFile').files[0];
-            if(file) document.getElementById('fileText').innerText = `LISTO: ${file.name.slice(0,18)}...`;
+            if(file) {
+                document.getElementById('fileText').innerText = `LISTO: ${file.name.slice(0,18)}...`;
+                // Show image preview
+                const preview = document.getElementById('filePreview');
+                const previewImg = document.getElementById('filePreviewImg');
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeSelectedFile() {
+            const fileInput = document.getElementById('compFile');
+            fileInput.value = '';
+            document.getElementById('fileText').innerText = 'Subir Comprobante';
+            document.getElementById('filePreview').classList.add('hidden');
+            document.getElementById('filePreviewImg').src = '';
         }
 
         async function uploadEvidence() {
@@ -932,36 +956,64 @@
             const file = fileInput.files[0];
             
             if(!file) return showToast('Error: Selecciona el comprobante', 'danger');
-            
-            // Validación de archivo requerida por el usuario
             if(!file.type.startsWith('image/')) return showToast('Error: El archivo debe ser una imagen', 'danger');
             if(file.size > 5 * 1024 * 1024) return showToast('Error: La imagen no debe superar los 5MB', 'danger');
 
             const btn = document.getElementById('btnUpload');
             const originalText = btn.innerHTML;
-            btn.innerHTML = 'TRANSFIRIENDO DATOS...';
+            const originalStyle = btn.style.cssText;
+            
+            // Animation: press effect
+            btn.style.cssText = 'background: #475569; transform: scale(0.97); pointer-events: none;';
+            btn.innerHTML = '<span class="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></span> ENVIANDO...';
             btn.disabled = true;
 
             const formData = new FormData();
             formData.append('screenshot', file);
+            const token = localStorage.getItem('bp_token');
 
             try {
-                const data = await safeFetch('/api/payments/upload', {
+                const res = await fetch('/api/payments/upload', {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
+                const data = await res.json();
 
-                if (data) {
-                    showToast('Comprobante enviado. Se validará en breve para recargar tokens.', 'success');
-                    closeTokensModal();
+                if (res.ok && data) {
+                    btn.style.cssText = 'background: #10b981; transform: scale(1);';
+                    btn.innerHTML = '✅ COMPROBANTE ENVIADO';
+                    showToast('Comprobante enviado. Se validará en breve.', 'success');
+                    // Notify admin via socket
+                    if(appSocket) appSocket.emit('newPayment');
+                    setTimeout(() => closeTokensModal(), 1500);
+                } else {
+                    showToast(data.error || 'Error al enviar', 'danger');
+                    btn.style.cssText = originalStyle;
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
                 }
             } catch(e) {
                 showToast('Falla de red en la terminal.', 'danger');
-                btn.disabled = false;
+                btn.style.cssText = originalStyle;
                 btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- SAFE FETCH UTILITY ---
+        async function safeFetch(url, opts = {}) {
+            try {
+                const res = await fetch(url, opts);
+                if(!res.ok) {
+                    const err = await res.json().catch(() => ({ error: 'Error de red' }));
+                    if(res.status !== 401) showToast(err.error || `Error ${res.status}`, 'danger');
+                    return null;
+                }
+                return await res.json();
+            } catch(e) {
+                console.error('safeFetch error:', e);
+                return null;
             }
         }
 
@@ -1547,6 +1599,8 @@
 
 
         let appSocket;
+        let adminPollingInterval = null;
+
         function initSocket() {
              if(appSocket) return;
              if (typeof io !== 'undefined') {
@@ -1578,6 +1632,14 @@
                          `;
                      }).join('');
                  });
+
+                 // Real-time admin notifications
+                 appSocket.on('newPaymentAlert', () => {
+                     showToast('🚨 Nuevo pago recibido! Revisa el Command Center.', 'info');
+                     if(!document.getElementById('adminPanelModal')?.classList.contains('hidden')) {
+                         fetchAdminData();
+                     }
+                 });
              }
         }
 
@@ -1590,12 +1652,14 @@
             const modal = document.getElementById('adminPanelModal');
             const content = document.getElementById('adminPanelContent');
             modal.classList.remove('hidden');
-            // Trigger reflow
             void modal.offsetWidth;
             modal.style.opacity = '1';
             content.style.transform = 'translateX(0)';
             
             await fetchAdminData();
+            // Start auto-refresh every 5 seconds while admin panel is open
+            if(adminPollingInterval) clearInterval(adminPollingInterval);
+            adminPollingInterval = setInterval(fetchAdminData, 5000);
         }
 
         function closeAdminPanel() {
@@ -1603,24 +1667,32 @@
             const content = document.getElementById('adminPanelContent');
             modal.style.opacity = '0';
             content.style.transform = 'translateX(100%)';
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            // Stop auto-refresh
+            if(adminPollingInterval) { clearInterval(adminPollingInterval); adminPollingInterval = null; }
         }
 
         async function fetchAdminData() {
             const token = localStorage.getItem('bp_token');
             if(!token) return;
 
-            // Fetch Pending Payments
-            const payments = await safeFetch('/api/admin/payments', { headers: { 'Authorization': `Bearer ${token}` } });
-            if(payments) renderAdminPayments(payments);
+            try {
+                const [paymentsRes, usersRes] = await Promise.all([
+                    fetch('/api/admin/payments', { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch('/api/admin/users', { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
 
-            // Fetch Users
-            const users = await safeFetch('/api/admin/users', { headers: { 'Authorization': `Bearer ${token}` } });
-            if(users) {
-                adminUsersCache = users;
-                renderAdminUsers(users);
+                if(paymentsRes.ok) {
+                    const payments = await paymentsRes.json();
+                    renderAdminPayments(payments);
+                }
+                if(usersRes.ok) {
+                    const users = await usersRes.json();
+                    adminUsersCache = users;
+                    renderAdminUsers(users);
+                }
+            } catch(e) {
+                console.warn('Admin fetch error:', e);
             }
         }
 

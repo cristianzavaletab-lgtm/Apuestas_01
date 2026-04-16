@@ -114,6 +114,12 @@ class App {
         }
       }, 500);
 
+      socket.on('newPayment', () => {
+        // Broadcast to all connected clients (admin will listen)
+        socket.broadcast.emit('newPaymentAlert');
+        logger.info('🔔 New payment notification broadcast');
+      });
+
       socket.on('disconnect', () => {
         logger.info(`Client disconnected: ${socket.id}`);
       });
