@@ -233,9 +233,17 @@
                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Terminal ID</label>
                      <input type="text" id="loginUser" placeholder="Usuario o DNI" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-700 outline-none focus:border-blue-500 focus:bg-slate-900 transition-all">
                  </div>
-                 <div class="space-y-1.5">
+                 <div class="space-y-1.5 relative group">
                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Access Key</label>
-                     <input type="password" id="loginPass" placeholder="••••••••" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-700 outline-none focus:border-blue-500 focus:bg-slate-900 transition-all" onkeyup="if(event.key==='Enter') doLogin()">
+                     <div class="relative">
+                         <input type="password" id="loginPass" placeholder="••••••••" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-700 outline-none focus:border-blue-500 focus:bg-slate-900 transition-all pr-12" onkeyup="if(event.key==='Enter') doLogin()">
+                         <button type="button" onclick="togglePass('loginPass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-blue-500 transition-colors p-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                             </svg>
+                         </button>
+                     </div>
                  </div>
                  <div class="pt-4 flex flex-col gap-3">
                      <button onclick="doLogin()" id="btnLogin" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase text-[11px] tracking-widest rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-blue-900/20">Acceder ahora</button>
@@ -258,7 +266,15 @@
                  </div>
                  <div class="h-[1px] bg-white/5 my-2"></div>
                  <input type="text" id="regUser" placeholder="Nombre de Usuario Único" class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-3 text-xs text-white placeholder-slate-700 outline-none focus:border-blue-500 transition-all">
-                 <input type="password" id="regPass" placeholder="Contraseña Sugerida" class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-3 text-xs text-white placeholder-slate-700 outline-none focus:border-blue-500 transition-all" onkeyup="if(event.key==='Enter') doRegister()">
+                 <div class="relative">
+                     <input type="password" id="regPass" placeholder="Contraseña Sugerida" class="w-full bg-slate-900/60 border border-slate-800 rounded-lg px-4 py-3 text-xs text-white placeholder-slate-700 outline-none focus:border-blue-500 transition-all pr-10" onkeyup="if(event.key==='Enter') doRegister()">
+                     <button type="button" onclick="togglePass('regPass', this)" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600 hover:text-emerald-500 transition-colors p-1.5">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                         </svg>
+                     </button>
+                 </div>
                  
                  <div class="flex flex-col gap-3 pt-4">
                      <button onclick="doRegister()" id="btnRegister" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase text-[10px] tracking-widest rounded-xl transition-all active:scale-[0.98] shadow-lg shadow-emerald-900/20">Completar Afiliación</button>
@@ -1620,6 +1636,17 @@
             } catch(e) {
                showToast('Error de conexión con el terminal.', 'danger');
                btn.innerHTML = originalText;
+            }
+        }
+        
+        function togglePass(id, btn) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.classList.add('text-blue-500');
+            } else {
+                input.type = 'password';
+                btn.classList.remove('text-blue-500');
             }
         }
         

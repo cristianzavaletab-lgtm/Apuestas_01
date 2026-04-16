@@ -64,9 +64,9 @@ router.post('/login', async (req, res) => {
     let userEntry;
     if (dbConfig.isMemoryMode()) {
        const memStore = dbConfig.getMemStore();
-       userEntry = Array.from(memStore.users.values()).find(u => u.username === username);
+       userEntry = Array.from(memStore.users.values()).find(u => u.username === username || u.dni === username);
     } else {
-       userEntry = await User.findOne({ username });
+       userEntry = await User.findOne({ $or: [{ username }, { dni: username }] });
     }
 
     if (!userEntry || !userEntry.password) {
