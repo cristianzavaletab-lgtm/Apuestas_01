@@ -6,6 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BetPredict | Professional High Conviction Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: 'var(--accent)',
+                        surface: 'var(--surface)',
+                        'text-bright': 'var(--text-bright)'
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -1689,8 +1702,14 @@
                  });
 
                  // Real-time admin notifications
+                 appSocket.on('admin:update', () => {
+                     if(!document.getElementById('adminPanelModal')?.classList.contains('hidden')) {
+                         fetchAdminData();
+                     }
+                 });
+
                  appSocket.on('newPaymentAlert', () => {
-                     showToast('🚨 Nuevo pago recibido! Revisa el Command Center.', 'info');
+                     showToast('🚨 Nuevo aviso en el Command Center.', 'info');
                      if(!document.getElementById('adminPanelModal')?.classList.contains('hidden')) {
                          fetchAdminData();
                      }

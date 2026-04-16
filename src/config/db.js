@@ -55,6 +55,10 @@ async function connectDB() {
   usingMemory = true;
 }
 
+const fs = require('fs');
+const path = require('path');
+const MEM_DB_PATH = path.join(__dirname, 'mem_db.json');
+
 function isMemoryMode() { return usingMemory; }
 function isConnected()  { return connected; }
 function getMemStore()  { 
@@ -67,6 +71,43 @@ function getMemStore()  {
   return memStore; 
 }
 
+function saveMemDb() {
+    if (!usingMemory) return;
+    try {
+        const data = {
+            users: Array.from(memStore.users.entries()),
+            payments: Array.from(memStore.payments.entries()),
+            matches: Array.from(memStore.matches.entries()),
+            predictions: Array.from(memStore.predictions.entries()),
+            combos: memStore.combos,
+            usage: memStore.usage
+        };
+        fs.writeFileSync(MEM_DB_PATH, JSON.stringify(data, null, 2));
+        // logger.debug('💾 MemDB persistida');
+    } catch (e) {
+        logger.error('Error guardando MemDB:', e.message);
+    }
+}
+
+function loadMemDb() {
+    if (!fs.existsSync(MEM_DB_PATH)) return;
+    try {
+        const data = JSON.parse(fs.readFileSync(MEM_DB_PATH, 'utf8'));
+        if (data.users) memStore.users = new Map(data.users);
+        if (data.payments) memStore.payments = new Map(data.payments);
+        if (data.matches) memStore.matches = new Map(data.matches);
+        if (data.predictions) memStore.predictions = new Map(data.predictions);
+        if (data.combos) memStore.combos = data.combos;
+        if (data.usage) memStore.usage = data.usage;
+        logger.info('📂 MemDB restaurada desde disco');
+    } catch (e) {
+        logger.error('Error cargando MemDB:', e.message);
+    }
+}
+
+// Cargar al iniciar
+loadMemDb();
+
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-module.exports = { connectDB, isMemoryMode, isConnected, getMemStore };
+module.exports = { connectDB, isMemoryMode, isConnected, getMemStore, saveMemDb };

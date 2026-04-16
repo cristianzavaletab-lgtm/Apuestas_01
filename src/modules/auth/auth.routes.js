@@ -32,7 +32,12 @@ router.post('/register', async (req, res) => {
       const newId = `usr_${Date.now()}`;
       const memUser = { _id: newId, username, password: hashedPassword, nombre, apellido, dni, fechaNacimiento, role: 'user', tokens: 10 };
       memStore.users.set(newId, memUser);
+      dbConfig.saveMemDb(); // Persistir a disco
       userId = newId;
+
+      // Real-time notification for Admin Command Center
+      const io = req.app.get('io');
+      if (io) io.emit('admin:update');
     } else {
       const existing = await User.findOne({ $or: [{ username }, { dni }] });
       if (existing) return res.status(400).json({ error: 'El usuario o DNI ya existe' });

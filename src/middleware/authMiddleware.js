@@ -20,7 +20,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     let user;
-    const dbConfig = require('../../config/db');
+    const dbConfig = require('../config/db');
     if (dbConfig.isMemoryMode()) {
        const memStore = dbConfig.getMemStore();
        user = memStore.users.get(decoded.id);
@@ -29,12 +29,14 @@ const authMiddleware = async (req, res, next) => {
     }
 
     if (!user) {
+      logger.warn(`Middleware: Usuario no encontrado en ${dbConfig.isMemoryMode()?'Memoria':'DB'} (ID: ${decoded.id})`);
       return res.status(401).json({ error: 'Usuario no encontrado' });
     }
 
     req.user = user;
     next();
   } catch (error) {
+    logger.error(`Middleware Auth Error: ${error.message}`);
     return res.status(401).json({ error: 'Sesión inválida o expirada' });
   }
 };
