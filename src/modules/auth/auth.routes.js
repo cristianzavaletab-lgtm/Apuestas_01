@@ -64,6 +64,8 @@ router.get('/me', authMiddleware, (req, res) => {
   res.json(req.user);
 });
 
+const dbConfig = require('../../config/db');
+
 router.post('/google', async (req, res) => {
   try {
      const { token } = req.body;
@@ -73,19 +75,35 @@ router.post('/google', async (req, res) => {
      });
      const payload = ticket.getPayload();
      
-     // Buscar o crear usuario
-     let userQuery = await User.findOne({ googleId: payload.sub });
-     if (!userQuery) {
-        userQuery = new User({
-            googleId: payload.sub,
-            username: payload.email.split('@')[0],
-            name: payload.name
-        });
-        await userQuery.save();
+     let userId;
+     let username = payload.email.split('@')[0];
+
+     if (dbConfig.isMemoryMode()) {
+         const memStore = dbConfig.getMemStore();
+         let memUser = Array.from(memStore.users.values()).find(u => u.googleId === payload.sub);
+         if(!memUser) {
+             const newId = `usr_${Date.now()}`;
+             memUser = { _id: newId, googleId: payload.sub, username, name: payload.name, tokens: 0, plan: 'free' };
+             memStore.users.set(newId, memUser);
+         }
+         userId = memUser._id;
+     } else {
+         // Buscar o crear usuario en DB
+         let userQuery = await User.findOne({ googleId: payload.sub });
+         if (!userQuery) {
+            userQuery = new User({
+                googleId: payload.sub,
+                username: username,
+                name: payload.name
+            });
+            await userQuery.save();
+         }
+         userId = userQuery._id;
+         username = userQuery.username;
      }
      
-     const appToken = jwt.sign({ id: userQuery._id, username: userQuery.username }, JWT_SECRET, { expiresIn: '7d' });
-     return res.json({ token: appToken, user: userQuery.username });
+     const appToken = jwt.sign({ id: userId, username: username }, JWT_SECRET, { expiresIn: '7d' });
+     return res.json({ token: appToken, user: username });
   } catch(e) {
      console.error("Google Auth Error:", e.message);
      return res.status(401).json({ error: 'Token Inválido o Error Google' });
