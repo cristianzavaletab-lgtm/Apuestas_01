@@ -58,9 +58,12 @@ async function connectDB() {
 function isMemoryMode() { return usingMemory; }
 function isConnected()  { return connected; }
 function getMemStore()  { 
-  // Defensive check for stale memory objects
+  // Defensive check for stale memory objects (Elite Robustness)
   if (!memStore.users) memStore.users = new Map();
   if (!memStore.payments) memStore.payments = new Map();
+  if (!memStore.matches) memStore.matches = new Map();
+  if (!memStore.predictions) memStore.predictions = new Map();
+  if (!memStore.combos) memStore.combos = [];
   return memStore; 
 }
 

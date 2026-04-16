@@ -15,6 +15,12 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Todos los campos son requeridos' });
     }
 
+    // Validación DNI (Estrictamente 8 dígitos para Perú)
+    const dniRegex = /^\d{8}$/;
+    if (!dniRegex.test(dni)) {
+      return res.status(400).json({ error: 'El DNI debe tener exactamente 8 dígitos numéricos' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     let userId;
 

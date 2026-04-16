@@ -258,7 +258,7 @@
                  </div>
                  <div class="grid grid-cols-2 gap-3">
                      <div class="space-y-1">
-                         <input type="text" id="regDNI" placeholder="DNI Oficial" maxlength="15" class="w-full bg-[#020617]/60 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 outline-none focus:border-emerald-500/50 transition-all">
+                         <input type="text" id="regDNI" placeholder="DNI (8 dígitos)" maxlength="8" inputmode="numeric" class="w-full bg-[#020617]/60 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-600 outline-none focus:border-emerald-500/50 transition-all" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
                      </div>
                      <div class="space-y-1">
                          <input type="date" id="regFecha" class="w-full bg-[#020617]/60 border border-slate-800 rounded-xl px-3 py-3 text-xs text-slate-500 outline-none focus:border-emerald-500/50 transition-all cursor-pointer" title="Fecha de Nacimiento">
@@ -1606,8 +1606,8 @@
                 btn.innerHTML = originalText; 
                 return; 
             }
-            if(d.length < 5 || isNaN(d)) {
-                showToast('DNI debe ser un número válido', 'warning');
+            if(d.length !== 8 || isNaN(d)) {
+                showToast('DNI debe tener exactamente 8 dígitos numéricos', 'warning');
                 btn.innerHTML = originalText; 
                 return;
             }
